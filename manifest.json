@@ -1,0 +1,19 @@
+[
+  {
+    "guid": "e271ab40-03fd-4c83-a042-9a819a628da4",
+    "name": "Dynamic HDR Stripper",
+    "owner": "feanorknd",
+    "category": "General",
+    "overview": "Elimina Dolby Vision y/o HDR10+ al vuelo, conservando HDR10 sin recodificar vídeo.",
+    "description": "Para Jellyfin Server 12.4.0.0 y clientes HEVC HLS seleccionados. Cuatro modos, Dry Run y configuración integrada. Validación física Xiaomi/Hisense pendiente.",
+    "versions": [
+      {
+        "version": "1.0.0.0",
+        "targetAbi": "12.4.0.0",
+        "changelog": "Versión 1.0.0. Remux selectivo DV/HDR10+, negociación PlaybackInfo, señalización HLS y aislamiento de sesiones. Probado en imagen oficial 12.4 con FFmpeg 8.1.3-Jellyfin; consultar compatibilidad.",
+        "sourceUrl": "https://github.com/feanorknd/jellyfin-dynamic-hdr-stripper/releases/download/v1.0.0/DynamicHDRStripper_1.0.0.zip",
+        "checksum": "f8704130210b4a5660aa3f4bb0071aa4"
+      }
+    ]
+  }
+]

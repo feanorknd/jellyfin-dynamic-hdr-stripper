@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html><head><title>Dynamic HDR Stripper</title></head><body>
+<div id="DynamicHdrStripperPage" data-role="page" class="page type-interior pluginConfigurationPage"
+     data-require="emby-input,emby-button,emby-checkbox,emby-select,emby-textarea">
+    <div data-role="content"><div class="content-primary">
+        <h1>Dynamic HDR Stripper</h1>
+        <p>Jellyfin Server 12.4.0.0 · HEVC Main 10 · remux sin recodificación de vídeo.</p>
+        <form id="DynamicHdrStripperForm">
+            <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="Enabled"><span>Activar plugin</span></label>
+            <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="DryRun"><span>Dry Run: registrar decisiones sin modificar la reproducción</span></label>
+            <h2>Metadatos que se eliminarán</h2>
+            <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="StripDolbyVision"><span>Eliminar Dolby Vision</span></label>
+            <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="StripHdr10Plus"><span>Eliminar HDR10+</span></label>
+            <p>Ambas desmarcadas: passthrough. Solo Dolby Vision: conserva HDR10+ si está presente.</p>
+            <h2>Clientes</h2>
+            <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="ApplyGlobally"><span>Aplicar globalmente a todos los clientes elegibles (opt-in)</span></label>
+            <div class="inputContainer"><label for="IncludedClients">Clientes incluidos: nombre de aplicación | DeviceId | nombre de dispositivo</label>
+                <textarea is="emby-textarea" id="IncludedClients" rows="4" class="emby-textarea" placeholder="Wholphin | identificador-de-tu-xiaomi |"></textarea>
+                <div class="fieldDescription">Una regla por línea; campos vacíos no restringen. Los campos de una regla se combinan con AND. Nombres: contienen, sin distinguir mayúsculas. DeviceId: coincidencia exacta. Una regla totalmente vacía nunca coincide.</div>
+            </div>
+            <div class="inputContainer"><label for="ExcludedClients">Clientes excluidos (mismo formato; la exclusión siempre prevalece)</label>
+                <textarea is="emby-textarea" id="ExcludedClients" rows="3" class="emby-textarea"></textarea></div>
+            <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="AllowRemotePlayback"><span>Permitir modificaciones para clientes fuera de la red local de Jellyfin</span></label>
+            <div class="inputContainer"><label for="MaxConcurrentSessions">Máximo de sesiones afectadas o pendientes</label>
+                <input is="emby-input" id="MaxConcurrentSessions" type="number" min="1" max="32" required></div>
+            <div class="inputContainer"><label for="SessionIdleMinutes">Caducidad de sesiones inactivas (minutos)</label>
+                <input is="emby-input" id="SessionIdleMinutes" type="number" min="5" max="240" required></div>
+            <div class="selectContainer"><label for="LoggingLevel">Nivel mínimo de logging del plugin</label>
+                <select is="emby-select" id="LoggingLevel"><option>Debug</option><option>Information</option><option>Warning</option><option>Error</option><option>None</option></select></div>
+            <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" checked disabled><span>Proteger archivos sin base HDR10 verificada (obligatorio)</span></label>
+            <p>Soportado: HDR10+ HEVC con base HDR10 y DV P8/compatibilidad 1 sin enhancement layer. P5, P7, P8.2 y HLG se omiten. No se permite quemar subtítulos ni recodificar vídeo en sesiones transformadas.</p>
+            <p>La política queda fijada para cada sesión; los cambios se aplican en la siguiente negociación. Las fuentes remotas/live TV no se transforman. El logging nativo de Jellyfin puede contener rutas.</p>
+            <button is="emby-button" type="submit" class="raised button-submit block"><span>Guardar</span></button>
+        </form>
+    </div></div>
+    <script>
+        (function () {
+            'use strict';
+            const pluginId = 'e271ab40-03fd-4c83-a042-9a819a628da4';
+            const page = document.querySelector('#DynamicHdrStripperPage');
+            const booleans = ['Enabled', 'DryRun', 'StripDolbyVision', 'StripHdr10Plus', 'ApplyGlobally', 'AllowRemotePlayback'];
+            const numbers = ['MaxConcurrentSessions', 'SessionIdleMinutes'];
+            const rules = ['IncludedClients', 'ExcludedClients'];
+            const field = id => page.querySelector('#' + id);
+            const displayRules = list => (list || []).map(r => [r.ClientName || '', r.DeviceId || '', r.DeviceName || ''].join(' | ')).join('\n');
+            const parseRules = text => text.split('\n').filter(line => line.trim()).map(line => {
+                const parts = line.split('|').map(part => part.trim());
+                if (parts.length > 3) throw new Error('Cada regla admite tres campos separados por |.');
+                return {ClientName: parts[0] || '', DeviceId: parts[1] || '', DeviceName: parts[2] || ''};
+            });
+            page.addEventListener('pageshow', function () {
+                Dashboard.showLoadingMsg();
+                ApiClient.getPluginConfiguration(pluginId).then(config => {
+                    booleans.forEach(id => field(id).checked = !!config[id]);
+                    numbers.forEach(id => field(id).value = config[id]);
+                    rules.forEach(id => field(id).value = displayRules(config[id]));
+                    field('LoggingLevel').value = config.LoggingLevel || 'Information';
+                    Dashboard.hideLoadingMsg();
+                }).catch(() => { Dashboard.hideLoadingMsg(); Dashboard.alert('No se pudo cargar la configuración.'); });
+            });
+            field('DynamicHdrStripperForm').addEventListener('submit', function (event) {
+                event.preventDefault();
+                let parsed;
+                try { parsed = Object.fromEntries(rules.map(id => [id, parseRules(field(id).value)])); }
+                catch (error) { Dashboard.alert(error.message); return; }
+                Dashboard.showLoadingMsg();
+                ApiClient.getPluginConfiguration(pluginId).then(config => {
+                    booleans.forEach(id => config[id] = field(id).checked);
+                    numbers.forEach(id => config[id] = Number(field(id).value));
+                    Object.assign(config, parsed, {ProtectHdr10BaseLayer: true, LoggingLevel: field('LoggingLevel').value});
+                    return ApiClient.updatePluginConfiguration(pluginId, config);
+                }).then(result => Dashboard.processPluginConfigurationUpdateResult(result))
+                    .catch(() => { Dashboard.hideLoadingMsg(); Dashboard.alert('No se pudo guardar la configuración.'); });
+            });
+        })();
+    </script>
+</div></body></html>
