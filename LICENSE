@@ -17,5 +17,5 @@ It is also available at https://www.gnu.org/licenses/old-licenses/gpl-2.0.html.
 
 Jellyfin server assemblies are referenced for compilation and are not
 included in the distributable plugin. Architecture references are credited
-in docs/ARQUITECTURA.md; their implementations have not been copied into
+in docs/ARCHITECTURE.md; their implementations have not been copied into
 this plugin.

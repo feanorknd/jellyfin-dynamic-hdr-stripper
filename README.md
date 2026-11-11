@@ -1,219 +1,171 @@
 # Jellyfin Dynamic HDR Stripper
 
-**Dolby Vision y HDR10+ selectivos, una sola película original.**
+Some players do not detect HDR correctly when a video file includes Dolby Vision,
+which can prevent a movie from being displayed correctly. This plugin exists to
+work around that problem by removing Dolby Vision, and optionally HDR10+, during
+playback. To do this, Jellyfin switches the affected playback to **HLS
+transcoding/remux**: the video is **copied without re-encoding**, keeping its HDR10
+base layer. The original file is never modified.
 
-Plugin para Jellyfin que elimina metadatos dinámicos Dolby Vision y/o HDR10+
-durante la reproducción de vídeos HEVC con una capa base HDR10 válida.
-Jellyfin genera HLS mediante **remux y copia de vídeo**, sin recodificar la
-imagen ni modificar el archivo original. Puedes aplicarlo únicamente a los
-dispositivos seleccionados y mantener la reproducción original en el resto.
+[Download v1.1.0](https://github.com/feanorknd/jellyfin-dynamic-hdr-stripper/releases/tag/v1.1.0)
+· [Plugin repository manifest](https://raw.githubusercontent.com/feanorknd/jellyfin-dynamic-hdr-stripper/main/manifest.json)
+· [Compatibility and validation](docs/COMPATIBILITY.md)
+· [Architecture](docs/ARCHITECTURE.md)
 
-[Descargar v1.0.0](https://github.com/feanorknd/jellyfin-dynamic-hdr-stripper/releases/tag/v1.0.0)
-· [Manifest del repositorio](https://raw.githubusercontent.com/feanorknd/jellyfin-dynamic-hdr-stripper/main/manifest.json)
-· [Compatibilidad y validación](docs/COMPATIBILIDAD.md)
-· [Arquitectura](docs/ARQUITECTURA.md)
+## Compatibility
 
-## Compatibilidad
-
-| Componente | Versión objetivo |
+| Component | Target |
 |---|---|
-| Jellyfin **Server** | **12.4.0.0**, comprobada también al cargar el plugin |
+| Jellyfin **Server** | **12.4.0.0**, also checked when loading the plugin |
 | Runtime | .NET 10 |
-| Contenedor | Imagen Docker oficial `jellyfin/jellyfin:12.4` |
-| FFmpeg | `8.1.3-Jellyfin`, incluido en la imagen oficial |
-| Entrega | HLS con segmentos MPEG-TS o fMP4 |
+| Container | Official `jellyfin/jellyfin:12.4` image |
+| FFmpeg | `8.1.3-Jellyfin`, included in the official image |
+| Delivery | HEVC HLS with MPEG-TS or fMP4 segments |
 
-La versión de Jellyfin Web no determina la compatibilidad. El catálogo declara
-`targetAbi: 12.4.0.0`, pero la DLL exige exactamente esa versión de Server.
+The Jellyfin Web version does not determine compatibility. The catalog declares
+`targetAbi: 12.4.0.0`; the plugin requires exactly that Server version.
+See [validation results](docs/COMPATIBILITY.md) for the tested playback paths and
+the physical-device checks still pending.
 
-**Estado de v1.0.0:** integración y procesamiento real validados en laboratorio.
-La reproducción y activación HDR en Wholphin 1.1.1 / ExoPlayer / Xiaomi Mi Box S /
-Hisense siguen pendientes de validación física. El número de release no supone
-certificación para ese dispositivo. Consulta los [resultados y límites](docs/COMPATIBILIDAD.md).
+## Install or update from Jellyfin
 
-## Instalación desde el panel de Jellyfin
-
-1. Confirma la versión de **Server** en el panel o en el registro de arranque.
-2. Abre **Panel de control → Plugins → Repositorios → Añadir**.
-3. Introduce:
-
-   **Nombre:** `Dynamic HDR Stripper`
-
-   **URL:**
+1. Open **Dashboard → Plugins → Repositories → Add**.
+2. Enter the name `Dynamic HDR Stripper` and this URL:
 
    ```text
    https://raw.githubusercontent.com/feanorknd/jellyfin-dynamic-hdr-stripper/main/manifest.json
    ```
 
-4. Guarda, abre el **Catálogo** e instala **Dynamic HDR Stripper**.
-5. Reinicia el contenedor Jellyfin.
-6. Abre la configuración del plugin y selecciona los clientes afectados.
+3. Save, open the **Catalog**, and install **Dynamic HDR Stripper**.
+4. Restart Jellyfin and open the plugin configuration.
 
-El plugin comienza **desactivado**, con **Dry Run activo**, sin clientes
-seleccionados y sin aplicación global.
+If you already use this repository, v1.1.0 is published as **1.1.0.0**, above
+1.0.0.0. Refresh the plugin catalog or run Jellyfin's plugin update task, install
+the update, and restart Jellyfin.
 
-### Instalación manual
+**Upgrading from 1.0:** included/excluded client lists have been removed and are
+no longer used. Recreate your desired client selections using the new specific
+configurations. The remaining general settings are preserved.
 
-Descarga `DynamicHDRStripper_1.0.0.zip` desde
+New installations start disabled, with Dry Run enabled, global application off,
+and no specific client configurations.
+
+### Manual installation
+
+Download `DynamicHDRStripper_1.1.0.zip` and `SHA256SUMS` from
 [Releases](https://github.com/feanorknd/jellyfin-dynamic-hdr-stripper/releases).
-Comprueba el archivo con `SHA256SUMS`, publicado junto al ZIP.
-
-Con el contenedor detenido, extrae el ZIP en el volumen persistente de Jellyfin:
+With Jellyfin stopped, extract the ZIP under:
 
 ```text
-/config/plugins/Dynamic HDR Stripper_1.0.0.0/
+/config/plugins/Dynamic HDR Stripper_1.1.0.0/
 ├── Jellyfin.Plugin.DynamicHdrStripper.dll
 ├── meta.json
+├── logo.svg
 ├── README.md
 ├── LICENSE
 └── docs/
 ```
 
-La DLL y `meta.json` deben quedar directamente en esa carpeta. Inicia el
-contenedor después. No necesitas sustituir FFmpeg, compilar Jellyfin ni crear
-una imagen Docker personalizada.
+The DLL and `meta.json` must be directly in that directory. Start Jellyfin after
+installation. No replacement FFmpeg or custom Jellyfin image is needed.
 
-## Los cuatro modos
+## Client configuration
 
-Las casillas **Eliminar Dolby Vision** y **Eliminar HDR10+** son independientes:
+**Apply globally** uses the general removal settings for eligible clients that
+do not match a specific configuration. The two general checkboxes allow keeping
+everything, removing DV only, removing HDR10+ only, or removing both.
 
-| Eliminar DV | Eliminar HDR10+ | Comportamiento |
-|:---:|:---:|---|
-| No | No | Passthrough: negociación original |
-| Sí | No | Elimina DV y conserva HDR10+ cuando existe |
-| No | Sí | Elimina HDR10+ y conserva DV cuando existe |
-| Sí | Sí | Elimina ambos, conservando la base HDR10 |
+Use **＋ Add client** to create a specific configuration:
 
-Filtros utilizados:
+- Enter one **word or regular expression**, such as `xiaomi`, `wholphin`, or
+  `wholphin|android`.
+- The expression is searched **case-insensitively** in the application name,
+  device name, and device identifier (`DeviceId`). A match in **any** field is enough.
+- Select **Remove Dolby Vision** or **Remove Dolby Vision and HDR10+**.
+- Use **Remove** to delete a configuration and the arrows to change its priority.
+- Save your changes.
 
-```text
-dovi_rpu=strip=1
-hevc_metadata=remove_hdr10plus=1
-```
+The **first matching specific configuration overrides the general mode**, even
+when global application is off or the general checkboxes are both unchecked.
+For example, a DV-only client rule preserves HDR10+ even if the general mode
+removes both. With no matching rule and global application off, playback stays
+unchanged. All modes still follow the plugin's eligibility and network settings.
 
-Se integran con los filtros compatibles que ya haya generado Jellyfin, incluido
-`hevc_mp4toannexb`. Al conservar DV se conserva también su configuración fMP4
-usando el mismo ajuste de muxing `-strict -2` que utiliza Jellyfin nativo.
+Expressions are validated on save. Each is limited to 256 characters and matching
+has a 50 ms timeout. Empty expressions are not accepted. Use simple expressions
+compatible with JavaScript and .NET regular expressions; enter them without `/…/`
+delimiters. The menu follows Jellyfin's interface language: English and Spanish
+are available, with English as the fallback for other languages.
 
-## Primera prueba con Wholphin / Xiaomi
+### First playback
 
-1. Mantén **Aplicar globalmente** desactivado.
-2. En **Clientes incluidos**, añade una regla con el DeviceId real del equipo:
+1. Add a specific configuration, for example `wholphin`, with the desired mode.
+2. Enable the plugin and keep **Dry Run** on to check its logged decisions.
+3. Disable Dry Run, save, stop playback and start it again.
+4. Check HDR on the display, audio, subtitles and seeking.
 
-   ```text
-   Wholphin | DEVICE-ID-DE-TU-XIAOMI |
-   ```
+## Advanced settings
 
-3. Activa el plugin y deja **Dry Run** marcado. Reproduce un vídeo elegible y
-   comprueba en el registro una decisión `eligible`.
-4. Para el primer ensayo, activa la eliminación de **ambos** formatos.
-5. Desmarca Dry Run, guarda, **detén la reproducción y vuelve a iniciarla**.
-6. Comprueba HDR en la pantalla, audio, subtítulos y seeking. Comprueba también
-   que un cliente excluido mantiene la reproducción original.
+- **Also apply to playback from outside the local network:** allows processing
+  for players Jellyfin classifies as remote, such as Internet connections. When
+  off, only local players are processed. Jellyfin's network, proxy and VPN
+  settings determine this classification. This does not enable remote media sources.
+- **Maximum simultaneously managed playbacks:** defaults to 2. Includes negotiated
+  sessions not yet playing. At the limit, new playbacks use normal Jellyfin
+  negotiation without plugin intervention.
+- **Release inactive sessions after:** defaults to 30 minutes. A session stores
+  the chosen mode for one playback; Stop releases it, and the timeout reclaims
+  abandoned sessions. This is not a maximum movie duration.
+- **Logging:** controls the plugin's minimum log level. Its own diagnostics redact
+  paths and tokens; native Jellyfin/FFmpeg logs may still include paths.
 
-Eliminar solo DV conserva HDR10+ en las pruebas de flujo. Que esa combinación
-resuelva la activación HDR de una Xiaomi concreta debe probarse por separado.
+The selected mode is fixed for each playback. Save, stop and restart playback to
+apply changes. Jellyfin manages FFmpeg processes, segments and cache cleanup.
 
-### Reglas de clientes
+## Supported videos
 
-Formato: una regla por línea, con tres campos separados por `|`:
+The plugin requires HEVC Main 10, 10-bit PQ/SMPTE2084, BT.2020 and BT.2020nc,
+with a verified HDR10 base. Supported dynamic metadata:
 
-```text
-Nombre de aplicación | DeviceId | Nombre del dispositivo
-```
+- Dolby Vision Profile 8, compatibility ID 1, RPU and base present, no enhancement layer.
+- HDR10+ with a verified HDR10 base.
 
-- Los campos no vacíos de una regla se combinan con **AND**.
-- Las distintas reglas se combinan con **OR**.
-- Aplicación y dispositivo: coincidencia de subcadena sin distinguir mayúsculas.
-- DeviceId: coincidencia exacta; no es un token ni el ID del usuario.
-- Las exclusiones siempre prevalecen. Una regla vacía no selecciona clientes.
-- La aplicación global es opt-in y sigue respetando exclusiones y elegibilidad.
+Pure HDR10, SDR, DV P5/P7, P8.2, HLG and incomplete metadata are skipped. Profile 5
+is not converted to HDR10. A file source, a client advertising HEVC HLS and remux
+permission are required. Audio permissions are respected; video encoding permission
+is not needed. Burn-in subtitles, remote media sources and live TV are not supported.
 
-## Qué vídeos se procesan
+The fixed filters are `dovi_rpu=strip=1` and
+`hevc_metadata=remove_hdr10plus=1`. Video payloads are copied. A transformed
+session cannot silently fall back to video re-encoding or SDR.
 
-El plugin exige HEVC Main 10, 10 bits, PQ/SMPTE2084, BT.2020 y matriz BT.2020nc.
-El soporte inicial comprende:
+## Build
 
-- DV Profile 8, compatibility ID 1, RPU y base presentes, sin enhancement layer.
-- HDR10+ sin DV con una base HDR10 verificada.
-
-Se omiten HDR10 puro, SDR y perfiles DV incompatibles o incompletos. **No se
-convierte Profile 5 a HDR10.** P7, P8.2, HLG y separación de enhancement layer
-no están habilitados.
-
-También se requieren una fuente de archivo con una pista de vídeo, un cliente
-que anuncie HEVC HLS y permiso de remux. Se respetan los permisos de audio.
-El usuario no necesita permiso de recodificar vídeo. Subtítulos que requieran
-burn-in no pueden usarse en una sesión transformada con copia de vídeo.
-
-## Configuración y operación
-
-- **Dry Run:** registra decisiones sin alterar la reproducción.
-- **Clientes remotos:** desactivados por defecto; se usa la definición de red
-  local del servidor. Esta opción no habilita fuentes multimedia remotas/live TV.
-- **Concurrencia:** máximo dos sesiones afectadas o negociadas por defecto.
-  Al alcanzar el límite se conserva la negociación original para nuevas sesiones.
-- **Caducidad:** reservas abandonadas caducan según el intervalo configurado;
-  Stop libera la reserva. Una URL de sesión perdida devuelve conflicto y exige
-  volver a solicitar PlaybackInfo.
-- **Política por sesión:** cambiar ajustes o desactivar el plugin afecta a nuevas
-  negociaciones. Detén la reproducción para cambiar inmediatamente de modo.
-- **Logs:** los diagnósticos propios redactan rutas y tokens. Los logs nativos
-  de Jellyfin/FFmpeg conservan su comportamiento y pueden incluir rutas.
-- **Caché:** Jellyfin gestiona procesos, segmentos y limpieza. El remux puede
-  avanzar rápidamente; configura el throttling y el disco temporal del servidor.
-
-No hay fallback del plugin a vídeo recodificado o SDR cuando falla una sesión
-transformada. Filtros incompatibles o trabajos que no sean vídeo `copy` se
-rechazan antes de ejecutar FFmpeg.
-
-## Compilar desde el código fuente
-
-Requisitos: Python 3 y Docker, con contenedores Linux y acceso a las imágenes
-oficiales. Desde la raíz del repositorio:
+Python 3 and Docker with Linux containers are required:
 
 ```bash
 python3 scripts/build.py
 ```
 
-El script extrae los ensamblados de la imagen oficial fijada por digest en
-`.build/host`, compila con el SDK .NET 10 en un contenedor independiente y genera:
+This extracts build references from the pinned official image, builds with the
+.NET 10 SDK in a separate container, and produces the ZIP, `SHA256SUMS`, and
+`dist/manifest.json`. It does not deploy the plugin. Server assemblies are never
+included in the package.
 
-```text
-dist/DynamicHDRStripper_1.0.0.zip
-dist/SHA256SUMS
-dist/manifest.json
-```
-
-No inicia un servidor Jellyfin ni despliega el plugin. El ZIP contiene únicamente
-la DLL propia, metadatos y documentación; los ensamblados del servidor quedan
-como referencias de compilación locales. `dist/manifest.json` describe el ZIP
-generado; solo el mantenedor debe publicarlo junto al mismo ZIP y su checksum.
-
-También puedes compilar con SDK .NET 10 local y ensamblados del servidor objetivo:
+With a local .NET 10 SDK and official Server assemblies:
 
 ```bash
 dotnet build src/Jellyfin.Plugin.DynamicHdrStripper -c Release \
-  -p:HostAssemblies=/ruta/a/ensamblados/oficiales
+  -p:HostAssemblies=/path/to/official/assemblies
 python3 scripts/build.py --package-only
 ```
 
-## Actualizar, deshabilitar y desinstalar
+## Disable, uninstall or roll back
 
-- **Actualizar desde catálogo:** instala la versión disponible y reinicia
-  Jellyfin. Revisa siempre la ABI objetivo y las notas de la release.
-- **Deshabilitar:** desmarca Activar plugin y comienza una nueva reproducción;
-  la configuración se conserva.
-- **Desinstalar:** usa la opción del panel de plugins y reinicia. Para retirada
-  manual, elimina únicamente la carpeta de este plugin con el contenedor parado.
-- **Rollback manual:** restaura el ZIP anterior compatible con el servidor,
-  evitando dejar simultáneamente dos carpetas con versiones activas del plugin.
+- Disable the plugin and start a new playback to stop applying new transformations.
+- Uninstall through Jellyfin's plugin dashboard and restart the server.
+- For manual rollback, stop Jellyfin and restore the previous compatible plugin
+  folder. Keep only the intended version active.
 
-No se migran bases de datos ni se alteran los originales. Los cambios se limitan
-a sesiones seleccionadas y a la configuración propia del plugin.
-
-## Licencia
-
-GPL-2.0-or-later. Consulta [LICENSE](LICENSE) y el
-[texto completo](docs/GPL-2.0.txt). Las referencias arquitectónicas y los puntos
-de extensión verificados se describen en [Arquitectura](docs/ARQUITECTURA.md).
+No media files or Jellyfin databases are modified. License: **GPL-2.0-or-later**;
+see [LICENSE](LICENSE) and the [full license](docs/GPL-2.0.txt).

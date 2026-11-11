@@ -5,11 +5,12 @@ namespace Jellyfin.Plugin.DynamicHdrStripper;
 [Flags]
 public enum StripMode { Passthrough = 0, DolbyVision = 1, Hdr10Plus = 2, Both = 3 }
 
-public sealed class ClientRule
+public enum ClientStripMode { DolbyVision = 1, Both = 3 }
+
+public sealed class ClientConfiguration
 {
-    public string ClientName { get; set; } = "";
-    public string DeviceId { get; set; } = "";
-    public string DeviceName { get; set; } = "";
+    public string Pattern { get; set; } = "";
+    public ClientStripMode Mode { get; set; } = ClientStripMode.DolbyVision;
 }
 
 public sealed class PluginConfiguration : BasePluginConfiguration
@@ -19,8 +20,7 @@ public sealed class PluginConfiguration : BasePluginConfiguration
     public bool StripDolbyVision { get; set; } = true;
     public bool StripHdr10Plus { get; set; } = true;
     public bool ApplyGlobally { get; set; }
-    public ClientRule[] IncludedClients { get; set; } = [];
-    public ClientRule[] ExcludedClients { get; set; } = [];
+    public ClientConfiguration[] ClientConfigurations { get; set; } = [];
     public bool AllowRemotePlayback { get; set; }
     public int MaxConcurrentSessions { get; set; } = 2;
     public int SessionIdleMinutes { get; set; } = 30;

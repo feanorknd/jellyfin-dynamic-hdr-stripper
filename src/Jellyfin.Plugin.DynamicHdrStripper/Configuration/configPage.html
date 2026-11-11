@@ -1,36 +1,43 @@
 <!DOCTYPE html>
 <html><head><title>Dynamic HDR Stripper</title></head><body>
 <div id="DynamicHdrStripperPage" data-role="page" class="page type-interior pluginConfigurationPage"
-     data-require="emby-input,emby-button,emby-checkbox,emby-select,emby-textarea">
+     data-require="emby-input,emby-button,emby-checkbox,emby-select">
     <div data-role="content"><div class="content-primary">
         <h1>Dynamic HDR Stripper</h1>
-        <p>Jellyfin Server 12.4.0.0 · HEVC Main 10 · remux sin recodificación de vídeo.</p>
+        <p data-i18n="subtitle"></p>
         <form id="DynamicHdrStripperForm">
-            <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="Enabled"><span>Activar plugin</span></label>
-            <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="DryRun"><span>Dry Run: registrar decisiones sin modificar la reproducción</span></label>
-            <h2>Metadatos que se eliminarán</h2>
-            <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="StripDolbyVision"><span>Eliminar Dolby Vision</span></label>
-            <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="StripHdr10Plus"><span>Eliminar HDR10+</span></label>
-            <p>Ambas desmarcadas: passthrough. Solo Dolby Vision: conserva HDR10+ si está presente.</p>
-            <h2>Clientes</h2>
-            <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="ApplyGlobally"><span>Aplicar globalmente a todos los clientes elegibles (opt-in)</span></label>
-            <div class="inputContainer"><label for="IncludedClients">Clientes incluidos: nombre de aplicación | DeviceId | nombre de dispositivo</label>
-                <textarea is="emby-textarea" id="IncludedClients" rows="4" class="emby-textarea" placeholder="Wholphin | identificador-de-tu-xiaomi |"></textarea>
-                <div class="fieldDescription">Una regla por línea; campos vacíos no restringen. Los campos de una regla se combinan con AND. Nombres: contienen, sin distinguir mayúsculas. DeviceId: coincidencia exacta. Una regla totalmente vacía nunca coincide.</div>
-            </div>
-            <div class="inputContainer"><label for="ExcludedClients">Clientes excluidos (mismo formato; la exclusión siempre prevalece)</label>
-                <textarea is="emby-textarea" id="ExcludedClients" rows="3" class="emby-textarea"></textarea></div>
-            <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="AllowRemotePlayback"><span>Permitir modificaciones para clientes fuera de la red local de Jellyfin</span></label>
-            <div class="inputContainer"><label for="MaxConcurrentSessions">Máximo de sesiones afectadas o pendientes</label>
-                <input is="emby-input" id="MaxConcurrentSessions" type="number" min="1" max="32" required></div>
-            <div class="inputContainer"><label for="SessionIdleMinutes">Caducidad de sesiones inactivas (minutos)</label>
-                <input is="emby-input" id="SessionIdleMinutes" type="number" min="5" max="240" required></div>
-            <div class="selectContainer"><label for="LoggingLevel">Nivel mínimo de logging del plugin</label>
-                <select is="emby-select" id="LoggingLevel"><option>Debug</option><option>Information</option><option>Warning</option><option>Error</option><option>None</option></select></div>
-            <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" checked disabled><span>Proteger archivos sin base HDR10 verificada (obligatorio)</span></label>
-            <p>Soportado: HDR10+ HEVC con base HDR10 y DV P8/compatibilidad 1 sin enhancement layer. P5, P7, P8.2 y HLG se omiten. No se permite quemar subtítulos ni recodificar vídeo en sesiones transformadas.</p>
-            <p>La política queda fijada para cada sesión; los cambios se aplican en la siguiente negociación. Las fuentes remotas/live TV no se transforman. El logging nativo de Jellyfin puede contener rutas.</p>
-            <button is="emby-button" type="submit" class="raised button-submit block"><span>Guardar</span></button>
+            <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="Enabled"><span data-i18n="enabled"></span></label>
+            <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="DryRun"><span data-i18n="dryRun"></span></label>
+            <h2 data-i18n="general"></h2>
+            <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="StripDolbyVision"><span data-i18n="stripDv"></span></label>
+            <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="StripHdr10Plus"><span data-i18n="stripPlus"></span></label>
+            <p data-i18n="generalHelp"></p>
+            <h2 data-i18n="clients"></h2>
+            <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="ApplyGlobally"><span data-i18n="global"></span></label>
+            <h3 data-i18n="specific"></h3>
+            <p data-i18n="matchHelp"></p>
+            <p data-i18n="priorityHelp"></p>
+            <div id="ClientConfigurations"></div>
+            <p id="NoClientConfigurations" data-i18n="noClients"></p>
+            <button is="emby-button" type="button" id="AddClientConfiguration" class="raised"><span data-i18n="addClient"></span></button>
+            <p data-i18n="saveHelp"></p>
+            <details>
+                <summary style="cursor:pointer; margin:1.5em 0; font-size:1.3em" data-i18n="advanced"></summary>
+                <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="AllowRemotePlayback"><span data-i18n="remote"></span></label>
+                <p class="fieldDescription" data-i18n="remoteHelp"></p>
+                <div class="inputContainer"><label for="MaxConcurrentSessions" data-i18n="maxSessions"></label>
+                    <input is="emby-input" id="MaxConcurrentSessions" type="number" min="1" max="32" required>
+                    <div class="fieldDescription" data-i18n="maxSessionsHelp"></div></div>
+                <div class="inputContainer"><label for="SessionIdleMinutes" data-i18n="idle"></label>
+                    <input is="emby-input" id="SessionIdleMinutes" type="number" min="5" max="240" required>
+                    <div class="fieldDescription" data-i18n="idleHelp"></div></div>
+                <div class="selectContainer"><label for="LoggingLevel" data-i18n="logging"></label>
+                    <select is="emby-select" id="LoggingLevel"><option>Debug</option><option>Information</option><option>Warning</option><option>Error</option><option>None</option></select></div>
+            </details>
+            <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" checked disabled><span data-i18n="protect"></span></label>
+            <p data-i18n="eligibility"></p>
+            <p data-i18n="sessionHelp"></p>
+            <button is="emby-button" type="submit" class="raised button-submit block"><span data-i18n="save"></span></button>
         </form>
     </div></div>
     <script>
@@ -38,39 +45,156 @@
             'use strict';
             const pluginId = 'e271ab40-03fd-4c83-a042-9a819a628da4';
             const page = document.querySelector('#DynamicHdrStripperPage');
+            const strings = {
+                en: {
+                    subtitle: 'Jellyfin Server 12.4.0.0 · HEVC Main 10 · HLS remux without video re-encoding.',
+                    enabled: 'Enable plugin', dryRun: 'Dry Run: log decisions without changing playback',
+                    general: 'General configuration', stripDv: 'Remove Dolby Vision', stripPlus: 'Remove HDR10+',
+                    generalHelp: 'Used for global playback when no specific configuration matches. Both unchecked: original playback. Dolby Vision only: preserves HDR10+ when present.',
+                    clients: 'Clients', global: 'Apply globally to all eligible clients', specific: 'Specific configurations',
+                    matchHelp: 'Enter a word or regular expression. It is searched, case-insensitively, in the application name, device name and device identifier (DeviceId). A match in any one of these is enough.',
+                    priorityHelp: 'The first matching configuration always overrides the general mode, even when global application is disabled. Use the arrows to change priority. Without a match or global application, playback is left unchanged.',
+                    noClients: 'No specific configurations.', addClient: '＋ Add client',
+                    saveHelp: 'Save changes after adding, removing or reordering configurations.', advanced: 'Advanced',
+                    remote: 'Also apply to playback from outside the local network',
+                    remoteHelp: 'Unchecked: only players Jellyfin considers local. Checked: also connections from the Internet or another network. This follows Jellyfin network, proxy and VPN settings; it does not enable remote media files or change originals.',
+                    maxSessions: 'Maximum simultaneously managed playbacks',
+                    maxSessionsHelp: 'Includes negotiated playbacks that have not started yet. At the limit, new playbacks use normal Jellyfin negotiation without plugin intervention. Default: 2.',
+                    idle: 'Release inactive sessions after (minutes)',
+                    idleHelp: 'A session stores the mode chosen for one playback. Stopping releases it; this timeout reclaims sessions abandoned without notification. It is not a maximum movie duration. Default: 30 minutes.',
+                    logging: 'Minimum plugin logging level', protect: 'Protect files without a verified HDR10 base layer (required)',
+                    eligibility: 'Supported: HEVC HDR10+ with an HDR10 base and DV P8/compatibility 1 without an enhancement layer. P5, P7, P8.2 and HLG are skipped. Transformed sessions cannot burn subtitles or re-encode video.',
+                    sessionHelp: 'The mode stays fixed during each playback. To apply changes, save, stop playback and start it again. Remote media sources/live TV are not transformed. Native Jellyfin logs may contain paths.',
+                    save: 'Save', client: 'Specific client', pattern: 'Word or regular expression',
+                    metadata: 'Metadata to remove', onlyDv: 'Remove Dolby Vision', both: 'Remove Dolby Vision and HDR10+',
+                    up: '↑ Move up', down: '↓ Move down', remove: '− Remove', placeholder: 'xiaomi or wholphin|android',
+                    emptyPattern: 'Enter a word or regular expression for client', invalidPattern: 'Invalid regular expression for client',
+                    loadError: 'Could not load the configuration.',
+                    saveError: 'Could not save the configuration. Check that the regular expressions are valid in .NET and try again.'
+                },
+                es: {
+                    subtitle: 'Jellyfin Server 12.4.0.0 · HEVC Main 10 · remux HLS sin recodificar vídeo.',
+                    enabled: 'Activar plugin', dryRun: 'Dry Run: registrar decisiones sin modificar la reproducción',
+                    general: 'Configuración general', stripDv: 'Eliminar Dolby Vision', stripPlus: 'Eliminar HDR10+',
+                    generalHelp: 'Se usa al aplicar globalmente y no coincidir ninguna configuración específica. Ambas desmarcadas: reproducción original. Solo Dolby Vision: conserva HDR10+ si está presente.',
+                    clients: 'Clientes', global: 'Aplicar globalmente a todos los clientes elegibles', specific: 'Configuraciones específicas',
+                    matchHelp: 'Escribe una palabra o expresión regular. Se busca sin distinguir mayúsculas en el nombre de la aplicación, el nombre del dispositivo y su identificador (DeviceId). Basta con que coincida uno de los tres.',
+                    priorityHelp: 'La primera configuración que coincida sustituye siempre a la general, aunque la aplicación global esté desactivada. Cambia su prioridad con las flechas. Sin coincidencias y sin aplicación global, se conserva la reproducción original.',
+                    noClients: 'No hay configuraciones específicas.', addClient: '＋ Añadir cliente',
+                    saveHelp: 'Guarda los cambios después de añadir, eliminar o reordenar configuraciones.', advanced: 'Avanzado',
+                    remote: 'Aplicar también a reproducciones desde fuera de la red local',
+                    remoteHelp: 'Desmarcado: solo reproductores que Jellyfin considera locales. Marcado: también conexiones desde Internet u otra red. Depende de la configuración de red, proxy y VPN de Jellyfin; no habilita archivos multimedia remotos ni modifica los originales.',
+                    maxSessions: 'Máximo de reproducciones gestionadas simultáneamente',
+                    maxSessionsHelp: 'Incluye reproducciones negociadas que aún no han empezado. Si se alcanza el límite, las nuevas siguen con la negociación normal de Jellyfin, sin intervención del plugin. Predeterminado: 2.',
+                    idle: 'Liberar sesiones sin actividad después de (minutos)',
+                    idleHelp: 'Una sesión guarda el modo elegido para una reproducción. Al detenerla se libera; este plazo recupera las abandonadas sin aviso. No es la duración máxima de la película. Predeterminado: 30 minutos.',
+                    logging: 'Nivel mínimo de logging del plugin', protect: 'Proteger archivos sin base HDR10 verificada (obligatorio)',
+                    eligibility: 'Soportado: HDR10+ HEVC con base HDR10 y DV P8/compatibilidad 1 sin enhancement layer. P5, P7, P8.2 y HLG se omiten. No se permite quemar subtítulos ni recodificar vídeo en sesiones transformadas.',
+                    sessionHelp: 'El modo se mantiene durante cada reproducción. Para aplicar cambios, guarda, detén la reproducción y vuelve a iniciarla. Las fuentes remotas/live TV no se transforman. El logging nativo de Jellyfin puede contener rutas.',
+                    save: 'Guardar', client: 'Cliente específico', pattern: 'Palabra o expresión regular',
+                    metadata: 'Metadatos que se eliminarán', onlyDv: 'Quitar Dolby Vision', both: 'Quitar Dolby Vision y HDR10+',
+                    up: '↑ Subir', down: '↓ Bajar', remove: '− Eliminar', placeholder: 'xiaomi o wholphin|android',
+                    emptyPattern: 'Escribe una palabra o expresión regular para el cliente', invalidPattern: 'Expresión regular incorrecta en el cliente',
+                    loadError: 'No se pudo cargar la configuración.',
+                    saveError: 'No se pudo guardar la configuración. Comprueba que las expresiones regulares sean válidas en .NET y vuelve a intentarlo.'
+                }
+            };
+            // Jellyfin Web sets <html lang> to the user's selected interface language.
+            // This takes priority over the browser language, which may be different.
+            function t(key) {
+                const locale = document.documentElement.lang || document.documentElement.getAttribute('data-culture') || navigator.language || 'en';
+                const language = locale.toLowerCase().split(/[-_]/)[0];
+                return (strings[language] || strings.en)[key] || strings.en[key];
+            }
+            function translate(root) {
+                root.querySelectorAll('[data-i18n]').forEach(element => { element.textContent = t(element.dataset.i18n); });
+            }
             const booleans = ['Enabled', 'DryRun', 'StripDolbyVision', 'StripHdr10Plus', 'ApplyGlobally', 'AllowRemotePlayback'];
             const numbers = ['MaxConcurrentSessions', 'SessionIdleMinutes'];
-            const rules = ['IncludedClients', 'ExcludedClients'];
             const field = id => page.querySelector('#' + id);
-            const displayRules = list => (list || []).map(r => [r.ClientName || '', r.DeviceId || '', r.DeviceName || ''].join(' | ')).join('\n');
-            const parseRules = text => text.split('\n').filter(line => line.trim()).map(line => {
-                const parts = line.split('|').map(part => part.trim());
-                if (parts.length > 3) throw new Error('Cada regla admite tres campos separados por |.');
-                return {ClientName: parts[0] || '', DeviceId: parts[1] || '', DeviceName: parts[2] || ''};
-            });
+            const list = field('ClientConfigurations');
+            let nextId = 0;
+            function refreshRows() {
+                const rows = Array.from(list.children);
+                field('NoClientConfigurations').hidden = rows.length !== 0;
+                rows.forEach((row, index) => {
+                    row.querySelector('h4').textContent = t('client') + ' ' + (index + 1);
+                    row.querySelector('.move-up').disabled = index === 0;
+                    row.querySelector('.move-down').disabled = index === rows.length - 1;
+                });
+            }
+            function addRow(rule) {
+                const row = document.createElement('div');
+                row.style.cssText = 'padding:1em; margin:1em 0; border:1px solid #8886; border-radius:.5em';
+                row.innerHTML = '<h4></h4>' +
+                    '<div class="inputContainer"><label data-i18n="pattern"></label>' +
+                    '<input is="emby-input" class="client-pattern" type="text" maxlength="256" required autocomplete="off" spellcheck="false"></div>' +
+                    '<div class="selectContainer"><label data-i18n="metadata"></label>' +
+                    '<select is="emby-select" class="client-mode"><option value="DolbyVision" data-i18n="onlyDv"></option><option value="Both" data-i18n="both"></option></select></div>' +
+                    '<div style="display:flex; gap:.5em; flex-wrap:wrap">' +
+                    '<button is="emby-button" type="button" class="raised move-up"><span data-i18n="up"></span></button>' +
+                    '<button is="emby-button" type="button" class="raised move-down"><span data-i18n="down"></span></button>' +
+                    '<button is="emby-button" type="button" class="raised remove-client"><span data-i18n="remove"></span></button></div>';
+                const pattern = row.querySelector('.client-pattern');
+                const mode = row.querySelector('.client-mode');
+                pattern.id = 'ClientPattern' + nextId;
+                mode.id = 'ClientMode' + nextId++;
+                pattern.placeholder = t('placeholder');
+                row.querySelector('.inputContainer label').htmlFor = pattern.id;
+                row.querySelector('.selectContainer label').htmlFor = mode.id;
+                pattern.value = rule.Pattern || '';
+                mode.value = rule.Mode === 'Both' || rule.Mode === 3 ? 'Both' : 'DolbyVision';
+                row.querySelector('.remove-client').addEventListener('click', () => { row.remove(); refreshRows(); });
+                row.querySelector('.move-up').addEventListener('click', () => {
+                    if (row.previousElementSibling) list.insertBefore(row, row.previousElementSibling);
+                    refreshRows();
+                });
+                row.querySelector('.move-down').addEventListener('click', () => {
+                    if (row.nextElementSibling) list.insertBefore(row.nextElementSibling, row);
+                    refreshRows();
+                });
+                translate(row);
+                list.appendChild(row);
+                refreshRows();
+                return pattern;
+            }
+            field('AddClientConfiguration').addEventListener('click', () => addRow({}).focus());
+            function readRows() {
+                return Array.from(list.children).map((row, index) => {
+                    const pattern = row.querySelector('.client-pattern').value.trim();
+                    if (!pattern) throw new Error(t('emptyPattern') + ' ' + (index + 1) + '.');
+                    try { new RegExp(pattern, 'i'); }
+                    catch (error) { throw new Error(t('invalidPattern') + ' ' + (index + 1) + ': ' + error.message); }
+                    return {Pattern: pattern, Mode: row.querySelector('.client-mode').value};
+                });
+            }
+            translate(page);
             page.addEventListener('pageshow', function () {
+                translate(page);
                 Dashboard.showLoadingMsg();
                 ApiClient.getPluginConfiguration(pluginId).then(config => {
                     booleans.forEach(id => field(id).checked = !!config[id]);
                     numbers.forEach(id => field(id).value = config[id]);
-                    rules.forEach(id => field(id).value = displayRules(config[id]));
+                    list.replaceChildren();
+                    (config.ClientConfigurations || []).forEach(addRow);
+                    refreshRows();
                     field('LoggingLevel').value = config.LoggingLevel || 'Information';
                     Dashboard.hideLoadingMsg();
-                }).catch(() => { Dashboard.hideLoadingMsg(); Dashboard.alert('No se pudo cargar la configuración.'); });
+                }).catch(() => { Dashboard.hideLoadingMsg(); Dashboard.alert(t('loadError')); });
             });
             field('DynamicHdrStripperForm').addEventListener('submit', function (event) {
                 event.preventDefault();
-                let parsed;
-                try { parsed = Object.fromEntries(rules.map(id => [id, parseRules(field(id).value)])); }
+                let clients;
+                try { clients = readRows(); }
                 catch (error) { Dashboard.alert(error.message); return; }
                 Dashboard.showLoadingMsg();
                 ApiClient.getPluginConfiguration(pluginId).then(config => {
                     booleans.forEach(id => config[id] = field(id).checked);
                     numbers.forEach(id => config[id] = Number(field(id).value));
-                    Object.assign(config, parsed, {ProtectHdr10BaseLayer: true, LoggingLevel: field('LoggingLevel').value});
+                    Object.assign(config, {ClientConfigurations: clients, ProtectHdr10BaseLayer: true, LoggingLevel: field('LoggingLevel').value});
                     return ApiClient.updatePluginConfiguration(pluginId, config);
                 }).then(result => Dashboard.processPluginConfigurationUpdateResult(result))
-                    .catch(() => { Dashboard.hideLoadingMsg(); Dashboard.alert('No se pudo guardar la configuración.'); });
+                    .catch(() => { Dashboard.hideLoadingMsg(); Dashboard.alert(t('saveError')); });
             });
         })();
     </script>

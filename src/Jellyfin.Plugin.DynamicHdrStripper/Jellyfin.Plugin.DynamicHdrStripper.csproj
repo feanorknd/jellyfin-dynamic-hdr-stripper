@@ -4,7 +4,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <Version>1.0.0.0</Version>
+    <Version>1.1.0.0</Version>
     <HostAssemblies Condition="'$(HostAssemblies)' == ''">$(MSBuildThisFileDirectory)../../.build/host</HostAssemblies>
   </PropertyGroup>
   <ItemGroup>

@@ -32,12 +32,13 @@ public sealed class PlaybackFilter(MediaInfoHelper helper, ILibraryManager libra
         if (context.ActionDescriptor is not ControllerActionDescriptor action
             || action.ControllerTypeInfo.AsType() != typeof(MediaInfoController)
             || action.MethodInfo.Name != nameof(MediaInfoController.GetPostedPlaybackInfo)
-            || config?.Enabled != true || config.Mode == StripMode.Passthrough || transcodeManager is not HdrTranscodeManager)
+            || config?.Enabled != true || transcodeManager is not HdrTranscodeManager)
         { await next().ConfigureAwait(false); return; }
 
         var principal = context.HttpContext.User;
         var deviceId = principal.GetDeviceId();
-        if (string.IsNullOrEmpty(deviceId) || !ClientSelection.Matches(config, principal.GetClient(), principal.GetDevice(), deviceId)
+        var requestedMode = ClientSelection.ResolveMode(config, principal.GetClient(), principal.GetDevice(), deviceId);
+        if (string.IsNullOrEmpty(deviceId) || requestedMode == StripMode.Passthrough
             || (!config.AllowRemotePlayback && !network.IsInLocalNetwork(context.HttpContext.GetNormalizedRemoteIP())))
         { await next().ConfigureAwait(false); return; }
 
@@ -77,7 +78,7 @@ public sealed class PlaybackFilter(MediaInfoHelper helper, ILibraryManager libra
             if (source.IsRemote || source.RequiresOpening || source.IsInfiniteStream) continue;
             if (source.MediaStreams.Count(s => s.Type == MediaBrowser.Model.Entities.MediaStreamType.Video) != 1) continue;
             var video = source.MediaStreams.FirstOrDefault(s => s.Type == MediaBrowser.Model.Entities.MediaStreamType.Video);
-            var mode = HdrEligibility.Evaluate(video, config.Mode, out var reason);
+            var mode = HdrEligibility.Evaluate(video, requestedMode, out var reason);
             HdrLog.Info(logger, "Dynamic HDR Stripper: decision={Reason}; mode={Mode}; dryRun={DryRun}", reason, mode, config.DryRun);
             if (mode == StripMode.Passthrough || config.DryRun) continue;
             if (Arg("allowVideoStreamCopy", dto?.AllowVideoStreamCopy) == false)
@@ -127,16 +128,4 @@ public sealed class PlaybackFilter(MediaInfoHelper helper, ILibraryManager libra
     }
 
     private static T Clone<T>(T value) => JsonSerializer.Deserialize<T>(JsonSerializer.SerializeToUtf8Bytes(value))!;
-}
-
-public static class ClientSelection
-{
-    public static bool Matches(PluginConfiguration config, string? client, string? device, string deviceId)
-        => !config.ExcludedClients.Any(r => Match(r, client, device, deviceId))
-            && (config.ApplyGlobally || config.IncludedClients.Any(r => Match(r, client, device, deviceId)));
-    private static bool Match(ClientRule rule, string? client, string? device, string id)
-        => (!string.IsNullOrWhiteSpace(rule.ClientName) || !string.IsNullOrWhiteSpace(rule.DeviceName) || !string.IsNullOrWhiteSpace(rule.DeviceId))
-            && (string.IsNullOrWhiteSpace(rule.ClientName) || client?.Contains(rule.ClientName, StringComparison.OrdinalIgnoreCase) == true)
-            && (string.IsNullOrWhiteSpace(rule.DeviceName) || device?.Contains(rule.DeviceName, StringComparison.OrdinalIgnoreCase) == true)
-            && (string.IsNullOrWhiteSpace(rule.DeviceId) || string.Equals(rule.DeviceId, id, StringComparison.Ordinal));
 }
