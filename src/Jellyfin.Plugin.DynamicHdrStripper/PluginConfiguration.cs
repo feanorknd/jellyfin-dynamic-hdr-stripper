@@ -5,12 +5,12 @@ namespace Jellyfin.Plugin.DynamicHdrStripper;
 [Flags]
 public enum StripMode { Passthrough = 0, DolbyVision = 1, Hdr10Plus = 2, Both = 3 }
 
-public enum ClientStripMode { DolbyVision = 1, Both = 3 }
+public enum ClientStripMode { Passthrough = 0, DolbyVision = 1, Both = 3 }
 
 public sealed class ClientConfiguration
 {
     public string Pattern { get; set; } = "";
-    public ClientStripMode Mode { get; set; } = ClientStripMode.DolbyVision;
+    public ClientStripMode Mode { get; set; } = ClientStripMode.Passthrough;
 }
 
 public sealed class PluginConfiguration : BasePluginConfiguration

@@ -7,7 +7,7 @@ playback. To do this, Jellyfin switches the affected playback to **HLS
 transcoding/remux**: the video is **copied without re-encoding**, keeping its HDR10
 base layer. The original file is never modified.
 
-[Download v1.1.0](https://github.com/feanorknd/jellyfin-dynamic-hdr-stripper/releases/tag/v1.1.0)
+[Download v1.2.0](https://github.com/feanorknd/jellyfin-dynamic-hdr-stripper/releases/tag/v1.2.0)
 · [Plugin repository manifest](https://raw.githubusercontent.com/feanorknd/jellyfin-dynamic-hdr-stripper/main/manifest.json)
 · [Compatibility and validation](docs/COMPATIBILITY.md)
 · [Architecture](docs/ARCHITECTURE.md)
@@ -39,9 +39,10 @@ the physical-device checks still pending.
 3. Save, open the **Catalog**, and install **Dynamic HDR Stripper**.
 4. Restart Jellyfin and open the plugin configuration.
 
-If you already use this repository, v1.1.0 is published as **1.1.0.0**, above
-1.0.0.0. Refresh the plugin catalog or run Jellyfin's plugin update task, install
-the update, and restart Jellyfin.
+If you already use this repository, v1.2.0 is published as **1.2.0.0**. Refresh
+the plugin catalog or run Jellyfin's plugin update task, install the update, and
+restart Jellyfin. Existing client rules keep their selected modes. New client
+configurations default to **Passthrough**.
 
 **Upgrading from 1.0:** included/excluded client lists have been removed and are
 no longer used. Recreate your desired client selections using the new specific
@@ -52,12 +53,12 @@ and no specific client configurations.
 
 ### Manual installation
 
-Download `DynamicHDRStripper_1.1.0.zip` and `SHA256SUMS` from
+Download `DynamicHDRStripper_1.2.0.zip` and `SHA256SUMS` from
 [Releases](https://github.com/feanorknd/jellyfin-dynamic-hdr-stripper/releases).
 With Jellyfin stopped, extract the ZIP under:
 
 ```text
-/config/plugins/Dynamic HDR Stripper_1.1.0.0/
+/config/plugins/Dynamic HDR Stripper_1.2.0.0/
 ├── Jellyfin.Plugin.DynamicHdrStripper.dll
 ├── meta.json
 ├── logo.svg
@@ -81,15 +82,20 @@ Use **＋ Add client** to create a specific configuration:
   `wholphin|android`.
 - The expression is searched **case-insensitively** in the application name,
   device name, and device identifier (`DeviceId`). A match in **any** field is enough.
-- Select **Remove Dolby Vision** or **Remove Dolby Vision and HDR10+**.
+- Select **Remove Dolby Vision**, **Remove Dolby Vision and HDR10+**, or
+  **Passthrough**. Passthrough is selected by default for new clients.
 - Use **Remove** to delete a configuration and the arrows to change its priority.
 - Save your changes.
 
 The **first matching specific configuration overrides the general mode**, even
 when global application is off or the general checkboxes are both unchecked.
 For example, a DV-only client rule preserves HDR10+ even if the general mode
-removes both. With no matching rule and global application off, playback stays
-unchanged. All modes still follow the plugin's eligibility and network settings.
+removes both. A **Passthrough** rule leaves normal Jellyfin playback unchanged,
+preserving both DV and HDR10+ and overriding global removal or any later matching
+rule. Use it to exempt a compatible player from global processing. It does not
+force DirectPlay if Jellyfin needs remuxing or transcoding for another reason.
+With no matching rule and global application off, playback stays unchanged.
+Removal modes still follow the plugin's eligibility and network settings.
 
 Expressions are validated on save. Each is limited to 256 characters and matching
 has a 50 ms timeout. Empty expressions are not accepted. Use simple expressions

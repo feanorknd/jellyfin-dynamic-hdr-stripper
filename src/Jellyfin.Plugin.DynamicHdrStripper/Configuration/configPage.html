@@ -53,7 +53,7 @@
                     generalHelp: 'Used for global playback when no specific configuration matches. Both unchecked: original playback. Dolby Vision only: preserves HDR10+ when present.',
                     clients: 'Clients', global: 'Apply globally to all eligible clients', specific: 'Specific configurations',
                     matchHelp: 'Enter a word or regular expression. It is searched, case-insensitively, in the application name, device name and device identifier (DeviceId). A match in any one of these is enough.',
-                    priorityHelp: 'The first matching configuration always overrides the general mode, even when global application is disabled. Use the arrows to change priority. Without a match or global application, playback is left unchanged.',
+                    priorityHelp: 'The first matching configuration always overrides the general mode, even when global application is disabled. Passthrough (the default for new clients) leaves playback unchanged, including when global removal is enabled. Use the arrows to change priority. Without a match or global application, playback is left unchanged.',
                     noClients: 'No specific configurations.', addClient: '＋ Add client',
                     saveHelp: 'Save changes after adding, removing or reordering configurations.', advanced: 'Advanced',
                     remote: 'Also apply to playback from outside the local network',
@@ -66,7 +66,7 @@
                     eligibility: 'Supported: HEVC HDR10+ with an HDR10 base and DV P8/compatibility 1 without an enhancement layer. P5, P7, P8.2 and HLG are skipped. Transformed sessions cannot burn subtitles or re-encode video.',
                     sessionHelp: 'The mode stays fixed during each playback. To apply changes, save, stop playback and start it again. Remote media sources/live TV are not transformed. Native Jellyfin logs may contain paths.',
                     save: 'Save', client: 'Specific client', pattern: 'Word or regular expression',
-                    metadata: 'Metadata to remove', onlyDv: 'Remove Dolby Vision', both: 'Remove Dolby Vision and HDR10+',
+                    metadata: 'Playback mode', onlyDv: 'Remove Dolby Vision', both: 'Remove Dolby Vision and HDR10+', passthrough: 'Passthrough',
                     up: '↑ Move up', down: '↓ Move down', remove: '− Remove', placeholder: 'xiaomi or wholphin|android',
                     emptyPattern: 'Enter a word or regular expression for client', invalidPattern: 'Invalid regular expression for client',
                     loadError: 'Could not load the configuration.',
@@ -79,7 +79,7 @@
                     generalHelp: 'Se usa al aplicar globalmente y no coincidir ninguna configuración específica. Ambas desmarcadas: reproducción original. Solo Dolby Vision: conserva HDR10+ si está presente.',
                     clients: 'Clientes', global: 'Aplicar globalmente a todos los clientes elegibles', specific: 'Configuraciones específicas',
                     matchHelp: 'Escribe una palabra o expresión regular. Se busca sin distinguir mayúsculas en el nombre de la aplicación, el nombre del dispositivo y su identificador (DeviceId). Basta con que coincida uno de los tres.',
-                    priorityHelp: 'La primera configuración que coincida sustituye siempre a la general, aunque la aplicación global esté desactivada. Cambia su prioridad con las flechas. Sin coincidencias y sin aplicación global, se conserva la reproducción original.',
+                    priorityHelp: 'La primera configuración que coincida sustituye siempre a la general, aunque la aplicación global esté desactivada. Passthrough (predeterminado para nuevos clientes) conserva la reproducción original, incluso con la eliminación global activada. Cambia su prioridad con las flechas. Sin coincidencias y sin aplicación global, se conserva la reproducción original.',
                     noClients: 'No hay configuraciones específicas.', addClient: '＋ Añadir cliente',
                     saveHelp: 'Guarda los cambios después de añadir, eliminar o reordenar configuraciones.', advanced: 'Avanzado',
                     remote: 'Aplicar también a reproducciones desde fuera de la red local',
@@ -92,7 +92,7 @@
                     eligibility: 'Soportado: HDR10+ HEVC con base HDR10 y DV P8/compatibilidad 1 sin enhancement layer. P5, P7, P8.2 y HLG se omiten. No se permite quemar subtítulos ni recodificar vídeo en sesiones transformadas.',
                     sessionHelp: 'El modo se mantiene durante cada reproducción. Para aplicar cambios, guarda, detén la reproducción y vuelve a iniciarla. Las fuentes remotas/live TV no se transforman. El logging nativo de Jellyfin puede contener rutas.',
                     save: 'Guardar', client: 'Cliente específico', pattern: 'Palabra o expresión regular',
-                    metadata: 'Metadatos que se eliminarán', onlyDv: 'Quitar Dolby Vision', both: 'Quitar Dolby Vision y HDR10+',
+                    metadata: 'Modo de reproducción', onlyDv: 'Quitar Dolby Vision', both: 'Quitar Dolby Vision y HDR10+', passthrough: 'Passthrough',
                     up: '↑ Subir', down: '↓ Bajar', remove: '− Eliminar', placeholder: 'xiaomi o wholphin|android',
                     emptyPattern: 'Escribe una palabra o expresión regular para el cliente', invalidPattern: 'Expresión regular incorrecta en el cliente',
                     loadError: 'No se pudo cargar la configuración.',
@@ -130,7 +130,7 @@
                     '<div class="inputContainer"><label data-i18n="pattern"></label>' +
                     '<input is="emby-input" class="client-pattern" type="text" maxlength="256" required autocomplete="off" spellcheck="false"></div>' +
                     '<div class="selectContainer"><label data-i18n="metadata"></label>' +
-                    '<select is="emby-select" class="client-mode"><option value="DolbyVision" data-i18n="onlyDv"></option><option value="Both" data-i18n="both"></option></select></div>' +
+                    '<select is="emby-select" class="client-mode"><option value="DolbyVision" data-i18n="onlyDv"></option><option value="Both" data-i18n="both"></option><option value="Passthrough" data-i18n="passthrough"></option></select></div>' +
                     '<div style="display:flex; gap:.5em; flex-wrap:wrap">' +
                     '<button is="emby-button" type="button" class="raised move-up"><span data-i18n="up"></span></button>' +
                     '<button is="emby-button" type="button" class="raised move-down"><span data-i18n="down"></span></button>' +
@@ -143,7 +143,8 @@
                 row.querySelector('.inputContainer label').htmlFor = pattern.id;
                 row.querySelector('.selectContainer label').htmlFor = mode.id;
                 pattern.value = rule.Pattern || '';
-                mode.value = rule.Mode === 'Both' || rule.Mode === 3 ? 'Both' : 'DolbyVision';
+                mode.value = rule.Mode === 'Both' || rule.Mode === 3 ? 'Both'
+                    : rule.Mode === 'DolbyVision' || rule.Mode === 1 ? 'DolbyVision' : 'Passthrough';
                 row.querySelector('.remove-client').addEventListener('click', () => { row.remove(); refreshRows(); });
                 row.querySelector('.move-up').addEventListener('click', () => {
                     if (row.previousElementSibling) list.insertBefore(row, row.previousElementSibling);

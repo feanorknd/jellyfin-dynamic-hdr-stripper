@@ -8,8 +8,11 @@ commit `83d0d0e7f76e23e2e085c8ff67d28b772d35967d`, .NET 10.
 `ClientSelection` searches ordered regular expressions independently against the
 authenticated application name, device name and DeviceId, using case-insensitive,
 culture-invariant matching with a 50 ms timeout. The first matching specific
-configuration selects DV-only or DV+HDR10+ removal. Only unmatched clients use
-the general mode, and only when global application is enabled. Legacy included
+configuration selects DV-only removal, DV+HDR10+ removal, or Passthrough. New
+client configurations default to Passthrough, which returns immediately to normal
+Jellyfin negotiation without reserving a plugin session or modifying HDR metadata,
+even when global removal is enabled or a later rule requests removal.
+Only unmatched clients use the general mode, and only when global application is enabled. Legacy included
 and excluded lists are no longer read. Enabled, Dry Run, network restrictions and
 video eligibility still apply.
 

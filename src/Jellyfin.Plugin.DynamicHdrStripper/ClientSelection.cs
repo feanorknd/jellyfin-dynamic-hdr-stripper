@@ -12,8 +12,8 @@ public static class ClientSelection
         ArgumentNullException.ThrowIfNull(rule);
         if (string.IsNullOrWhiteSpace(rule.Pattern) || rule.Pattern.Length > 256)
             throw new ArgumentException("Each client needs a word or regular expression of 1 to 256 characters.");
-        if (rule.Mode is not (ClientStripMode.DolbyVision or ClientStripMode.Both))
-            throw new ArgumentException("The specific mode must remove DV or remove DV and HDR10+.");
+        if (rule.Mode is not (ClientStripMode.Passthrough or ClientStripMode.DolbyVision or ClientStripMode.Both))
+            throw new ArgumentException("The specific mode must be Passthrough, remove DV or remove DV and HDR10+.");
         _ = new Regex(rule.Pattern, Options, MatchTimeout);
     }
 
@@ -22,7 +22,7 @@ public static class ClientSelection
         foreach (var rule in config.ClientConfigurations ?? [])
         {
             if (rule is null || string.IsNullOrWhiteSpace(rule.Pattern) || rule.Pattern.Length > 256
-                || rule.Mode is not (ClientStripMode.DolbyVision or ClientStripMode.Both)) continue;
+                || rule.Mode is not (ClientStripMode.Passthrough or ClientStripMode.DolbyVision or ClientStripMode.Both)) continue;
             try
             {
                 if (Matches(client, rule.Pattern) || Matches(device, rule.Pattern) || Matches(deviceId, rule.Pattern))

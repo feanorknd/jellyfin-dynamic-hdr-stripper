@@ -52,7 +52,7 @@ def package(version, release):
         "description": "For Jellyfin Server 12.4.0.0. Selective DV/HDR10+ removal without video re-encoding, per-client regex overrides, Dry Run, and a localized configuration menu.",
         "imageUrl": "https://raw.githubusercontent.com/feanorknd/jellyfin-dynamic-hdr-stripper/main/src/Jellyfin.Plugin.DynamicHdrStripper/Configuration/logo.svg",
         "versions": [{"version": version, "targetAbi": ABI,
-            "changelog": "Add crossed-out DV logo, ordered per-client regex configurations with DV-only or DV+HDR10+ overrides, English/Spanish language detection, and clearer advanced settings. Remove included/excluded client lists; recreate selections using specific configurations.",
+            "changelog": "Add Passthrough as the third specific-client mode and the default for new clients. The first matching Passthrough rule leaves playback unchanged, overriding global DV/HDR10+ removal and later rules. Existing client modes are preserved.",
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "sourceUrl": RELEASE_URL + release + "/" + filename, "checksum": checksum}]}]
     if (ROOT / "manifest.json").exists():

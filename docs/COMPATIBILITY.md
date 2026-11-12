@@ -42,6 +42,12 @@ field, regex syntax and timeouts, first-match priority, specific overrides of th
 general mode, global fallback and specific selection when the general mode is
 passthrough. The administrative page and catalog upgrade path are also checked.
 
+Version 1.2 adds Passthrough as the default for new specific client configurations.
+Regression checks cover overriding each global removal mode, first-match priority
+over later removal rules, and preserving the global fallback for unmatched clients.
+The configuration API and dashboard are checked for saving and reloading all three
+client modes, including preservation of existing removal selections.
+
 Only extracted segments are analyzed, not every frame of a full movie. HDR10,
 HDR10+ and DV-only fixtures derive from the hybrid clip and are not an independent corpus.
 
