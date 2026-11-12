@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/feanorknd/jellyfin-dynamic-hdr-stripper/main/src/Jellyfin.Plugin.DynamicHdrStripper/Configuration/logo.svg",
     "versions": [
       {
+        "version": "1.2.0.0",
+        "targetAbi": "12.4.0.0",
+        "changelog": "Add Passthrough as the third specific-client mode and the default for new clients. The first matching Passthrough rule leaves playback unchanged, overriding global DV/HDR10+ removal and later rules. Existing client modes are preserved.",
+        "timestamp": "2026-11-12T14:20:54.561552+00:00",
+        "sourceUrl": "https://github.com/feanorknd/jellyfin-dynamic-hdr-stripper/releases/download/v1.2.0/DynamicHDRStripper_1.2.0.zip",
+        "checksum": "51e757acf70da2d22b0adea4b6d0b4e2"
+      },
+      {
         "version": "1.1.0.0",
         "targetAbi": "12.4.0.0",
         "changelog": "Add crossed-out DV logo, ordered per-client regex configurations with DV-only or DV+HDR10+ overrides, English/Spanish language detection, and clearer advanced settings. Remove included/excluded client lists; recreate selections using specific configurations.",
